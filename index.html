@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Boond — Cartographie End-to-End</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --bg: #F7F8FC;
+  --white: #FFFFFF;
+  --border: #E2E6F0;
+  --border2: #CDD3E0;
+  --text: #1A1F2E;
+  --muted: #6B7280;
+  --muted2: #9CA3AF;
+
+  --sales: #2563EB;
+  --sales-light: #EFF6FF;
+  --sales-mid: #BFDBFE;
+
+  --sourcing: #D97706;
+  --sourcing-light: #FFFBEB;
+  --sourcing-mid: #FDE68A;
+
+  --adv: #059669;
+  --adv-light: #ECFDF5;
+  --adv-mid: #A7F3D0;
+
+  --multi: #7C3AED;
+  --multi-light: #F5F3FF;
+  --multi-mid: #DDD6FE;
+
+  --boond: #1D4ED8;
+
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.05);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,.08), 0 4px 6px rgba(0,0,0,.05);
+}
+
+body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height:100vh; }
+
+/* ── TOP NAV ── */
+.topnav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 20px;
+  position: sticky; top:0; z-index:200;
+}
+.brand { font-size:13px; font-weight:700; color:var(--text); padding:16px 20px 16px 0; border-right:1px solid var(--border); margin-right:16px; white-space:nowrap; }
+.brand span { color:var(--boond); }
+.nav-tabs { display:flex; gap:0; flex:1; }
+.nav-tab { padding:16px 18px; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:all .15s; background:none; border-top:none; border-left:none; border-right:none; }
+.nav-tab:hover { color:var(--text); }
+.nav-tab.active { color:var(--boond); border-bottom-color:var(--boond); }
+
+/* ── PAGES ── */
+.page { display:none; }
+.page.active { display:block; }
+
+/* ── PAGE HEADER ── */
+.page-head { padding:24px 24px 0; }
+.page-head h1 { font-size:20px; font-weight:800; color:var(--text); margin-bottom:4px; }
+.page-head p { font-size:13px; color:var(--muted); }
+
+/* ── LEGEND ── */
+.legend-bar {
+  display:flex; flex-wrap:wrap; gap:16px; align-items:center;
+  padding:12px 24px;
+  border-bottom:1px solid var(--border);
+  background:var(--white);
+  margin-bottom:24px;
+}
+.leg { display:flex; align-items:center; gap:6px; font-size:11px; font-weight:500; color:var(--muted); }
+.leg-dot { width:10px; height:10px; border-radius:50%; }
+
+/* ══════════════════════════════════
+   MACRO VIEW — swimlane flowchart
+══════════════════════════════════ */
+.macro-container { padding:0 24px 60px; }
+
+.swimlane-wrap {
+  background: var(--white);
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.swimlane-header-row {
+  display:grid;
+  grid-template-columns: 90px 1fr 1fr 1fr 1fr;
+  border-bottom:2px solid var(--border);
+}
+.sl-header-cell {
+  padding:10px 12px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  border-right:1px solid var(--border);
+  display:flex; align-items:center; gap:6px;
+}
+.sl-header-cell:last-child { border-right:none; }
+.sl-phase-label { padding:10px 14px; background:var(--bg); font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; justify-content:center; writing-mode:horizontal-tb; }
+
+/* Phase section row */
+.phase-section {
+  display:grid;
+  grid-template-columns: 90px 1fr;
+  border-bottom:1px solid var(--border);
+}
+.phase-section:last-child { border-bottom:none; }
+
+.phase-label-cell {
+  padding:16px 10px;
+  border-right:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+}
+.phase-label-inner {
+  writing-mode:vertical-rl;
+  text-orientation:mixed;
+  transform:rotate(180deg);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+
+.phase-content {
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+
+.actor-col {
+  border-right:1px solid var(--border);
+  padding:16px 12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  min-height:120px;
+}
+.actor-col:last-child { border-right:none; }
+
+/* Flow nodes */
+.fnode {
+  border-radius:8px;
+  padding:8px 10px;
+  font-size:11px;
+  font-weight:500;
+  line-height:1.4;
+  cursor:pointer;
+  transition:all .15s;
+  position:relative;
+  border:1.5px solid transparent;
+}
+.fnode:hover { transform:translateY(-1px); box-shadow:var(--shadow-md); }
+
+.fnode-start {
+  background:#1A1F2E; color:#fff; border-radius:20px;
+  text-align:center; font-size:10px; font-weight:700;
+  padding:5px 12px; align-self:center;
+}
+.fnode-end {
+  background:#1A1F2E; color:#fff; border-radius:20px;
+  text-align:center; font-size:10px; font-weight:700;
+  padding:5px 12px; align-self:center;
+}
+.fnode-decision {
+  background:var(--multi-light); border-color:var(--multi-mid);
+  color:var(--multi); font-style:italic; text-align:center;
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+  padding:16px 10px; font-size:10px;
+}
+
+.fnode.sales { background:var(--sales-light); border-color:var(--sales-mid); color:var(--sales); }
+.fnode.sourcing { background:var(--sourcing-light); border-color:var(--sourcing-mid); color:var(--sourcing); }
+.fnode.adv { background:var(--adv-light); border-color:var(--adv-mid); color:var(--adv); }
+.fnode.multi { background:var(--multi-light); border-color:var(--multi-mid); color:var(--multi); }
+
+.boond-pill {
+  display:inline-flex; align-items:center; gap:3px;
+  background:var(--boond); color:#fff;
+  font-size:9px; font-weight:600;
+  padding:2px 6px; border-radius:4px;
+  margin-top:4px; font-family:'JetBrains Mono', monospace;
+}
+
+.arrow-connector {
+  display:flex; align-items:center; justify-content:center;
+  color:var(--muted2); font-size:16px; padding:2px 0;
+}
+
+.yn-badges { display:flex; gap:4px; margin-top:4px; flex-wrap:wrap; }
+.yn { font-size:9px; font-weight:700; padding:2px 6px; border-radius:10px; }
+.yn.oui { background:#D1FAE5; color:#065F46; }
+.yn.non { background:#FEE2E2; color:#991B1B; }
+
+.drill-hint {
+  font-size:9px; color:var(--muted2); margin-top:4px;
+  display:flex; align-items:center; gap:3px;
+}
+
+/* ══════════════════════════════════
+   DETAIL VIEW
+══════════════════════════════════ */
+.detail-container { padding:0 24px 60px; }
+
+.phase-pills { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+.phase-pill {
+  padding:7px 16px; border-radius:20px; font-size:12px; font-weight:600;
+  cursor:pointer; border:2px solid var(--border); background:var(--white); color:var(--muted);
+  transition:all .15s;
+}
+.phase-pill.active { border-color:var(--boond); color:var(--boond); background:var(--sales-light); }
+
+.detail-phase { display:none; }
+.detail-phase.active { display:block; }
+
+.detail-phase-title {
+  font-size:16px; font-weight:800; margin-bottom:4px; color:var(--text);
+}
+.detail-phase-sub { font-size:12px; color:var(--muted); margin-bottom:20px; }
+
+.steps-table { width:100%; border-collapse:collapse; background:var(--white); border-radius:12px; overflow:hidden; box-shadow:var(--shadow); }
+.steps-table th {
+  background:var(--bg); padding:10px 14px; text-align:left;
+  font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--muted); border-bottom:2px solid var(--border);
+}
+.steps-table td {
+  padding:12px 14px; border-bottom:1px solid var(--border);
+  font-size:12px; vertical-align:top; line-height:1.5;
+}
+.steps-table tr:last-child td { border-bottom:none; }
+.steps-table tr:hover td { background:#FAFBFF; }
+
+.step-num {
+  width:26px; height:26px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:#fff; flex-shrink:0;
+}
+.step-action { font-weight:600; color:var(--text); margin-bottom:3px; }
+.step-detail { color:var(--muted); font-size:11px; }
+.actor-badge { font-size:10px; padding:3px 8px; border-radius:12px; font-weight:600; white-space:nowrap; }
+.boond-badge-tbl { text-decoration:none; display:inline-block; }
+.boond-link:hover { background:#DBEAFE; border-color:var(--boond); text-decoration:none; }
+.cl-boond-link { text-decoration:none; }
+.cl-boond-link:hover { background:#DBEAFE; border-color:var(--boond); }
+  font-size:10px; padding:2px 7px; border-radius:4px;
+  background:var(--sales-light); color:var(--boond);
+  border:1px solid var(--sales-mid); font-family:'JetBrains Mono',monospace;
+  font-weight:500; white-space:nowrap; line-height:1.6;
+}
+.decision-badge { font-size:10px; padding:2px 7px; border-radius:12px; background:var(--multi-light); color:var(--multi); border:1px solid var(--multi-mid); }
+
+/* ══════════════════════════════════
+   CHECKLIST VIEW
+══════════════════════════════════ */
+.checklist-container { padding:0 24px 60px; }
+
+.cl-phase-section { margin-bottom:28px; }
+.cl-phase-head {
+  display:flex; align-items:center; gap:10px;
+  padding:12px 16px; border-radius:10px 10px 0 0;
+  border:1px solid var(--border); border-bottom:none;
+}
+.cl-phase-num { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px; color:#fff; flex-shrink:0; }
+.cl-phase-title { font-size:13px; font-weight:700; flex:1; }
+.cl-progress-wrap { display:flex; align-items:center; gap:8px; }
+.cl-progress-bar { width:80px; height:4px; background:var(--border); border-radius:2px; overflow:hidden; }
+.cl-progress-fill { height:100%; border-radius:2px; transition:width .3s; }
+.cl-progress-text { font-size:10px; font-weight:600; color:var(--muted); white-space:nowrap; }
+
+.cl-items {
+  background:var(--white); border:1px solid var(--border); border-top:none;
+  border-radius:0 0 10px 10px; overflow:hidden;
+}
+
+.cl-item {
+  display:flex; align-items:flex-start; gap:12px;
+  padding:11px 16px; border-bottom:1px solid var(--border);
+  cursor:pointer; transition:background .1s;
+}
+.cl-item:last-child { border-bottom:none; }
+.cl-item:hover { background:var(--bg); }
+.cl-item.done { background:#F9FAFB; }
+
+.cl-checkbox {
+  width:17px; height:17px; border-radius:4px; border:1.5px solid var(--border2);
+  flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center;
+  transition:all .15s;
+}
+.cl-item.done .cl-checkbox { background:var(--adv); border-color:var(--adv); }
+.cl-item.done .cl-checkbox::after { content:'✓'; font-size:10px; color:#fff; font-weight:700; }
+.cl-item.done .cl-text { color:var(--muted); text-decoration:line-through; }
+
+.cl-text { flex:1; font-size:12.5px; line-height:1.5; }
+.cl-meta { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:3px; }
+.cl-boond { font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--boond); background:var(--sales-light); border:1px solid var(--sales-mid); padding:1px 6px; border-radius:4px; }
+.cl-actor { font-size:10px; padding:1px 6px; border-radius:10px; font-weight:600; }
+
+.reset-bar { display:flex; gap:10px; margin-bottom:20px; align-items:center; }
+.btn-reset { background:var(--white); border:1px solid var(--border); color:var(--muted); padding:7px 14px; border-radius:6px; font-size:12px; font-family:'Inter',sans-serif; cursor:pointer; transition:all .15s; }
+.btn-reset:hover { border-color:var(--border2); color:var(--text); }
+.global-progress { font-size:12px; color:var(--muted); }
+.global-progress strong { color:var(--adv); }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="topnav">
+  <div class="brand">CRM <span>Boond</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('macro')">🗺 Vue Macro</button>
+    <button class="nav-tab" onclick="showPage('detail')">🔍 Process Détaillé</button>
+    <button class="nav-tab" onclick="showPage('checklist')">✅ Checklist</button>
+  </div>
+</div>
+
+<!-- ══════════ VUE MACRO ══════════ -->
+<div class="page active" id="page-macro">
+  <div class="page-head">
+    <h1>Cartographie End-to-End</h1>
+    <p>Vue d'ensemble du process — du besoin client à la facturation</p>
+  </div>
+
+  <div class="legend-bar">
+    <div class="leg"><div class="leg-dot" style="background:var(--sales)"></div>Toi (Sales)</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--sourcing)"></div>Sourcing / Chasse</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--adv)"></div>ADV</div>
+    <div class="leg"><div class="leg-dot" style="background:var(--multi)"></div>Multi-acteurs</div>
+    <div class="leg" style="margin-left:auto"><span style="background:var(--boond);color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;">BOOND</span> Action dans Boond</div>
+  </div>
+
+  <div class="macro-container">
+    <div class="swimlane-wrap">
+
+      <!-- HEADER ROW -->
+      <div class="swimlane-header-row">
+        <div class="sl-header-cell" style="background:#F7F8FC;font-size:10px;color:var(--muted)">Phase</div>
+        <div class="sl-header-cell" style="background:var(--sales-light);color:var(--sales)">
+          <div class="leg-dot" style="background:var(--sales)"></div> Toi — Sales
+        </div>
+        <div class="sl-header-cell" style="background:var(--sourcing-light);color:var(--sourcing)">
+          <div class="leg-dot" style="background:var(--sourcing)"></div> Sourcing
+        </div>
+        <div class="sl-header-cell" style="background:var(--adv-light);color:var(--adv)">
+          <div class="leg-dot" style="background:var(--adv)"></div> ADV
+        </div>
+        <div class="sl-header-cell" style="background:var(--multi-light);color:var(--multi)">
+          <div class="leg-dot" style="background:var(--multi)"></div> Multi
+        </div>
+      </div>
+
+      <!-- PHASE 1 : Prospection -->
+      <div class="phase-section">
+        <div class="phase-label-cell" style="background:var(--sales-light);border-right-color:var(--sales)">
+          <div class="phase-label-inner" style="color:var(--sales)">01 · Prospection</div>
+        </div>
+        <div class="phase-content">
+          <div class="actor-col">
+            <div class="fnode sales" onclick="showDetailStep('p1')">
+              📥 Réception du besoin<br><small>Client / AO / Plateforme / Email</small>
+              <div class="boond-pill">⚡ Boond > Besoins > Nouveau</div>
+            </div>
+            <div class="arrow-connector">↓</div>
+            <div class="fnode sales" onclick="showDetailStep('p1')">
+              🔍 Qualification du besoin<br><small>Budget · Décisionnaire · Timeline · Concurrence</small>
+              <div class="boond-pill">⚡ Champs perso besoin</div>
+            </div>
+          </div>
+          <div class="actor-col"><!-- vide --></div>
+          <div class="actor-col"><!-- vide --></div>
+          <div class="actor-col">
+            <div class="fnode multi" onclick="showDetailStep('p1')">
+              📤 Transmission au sourcing<br><small>Brief + typologie</small>
+              <div class="boond-pill">⚡ Statut : En cours</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PHASE 2 : Staffing -->
+      <div class="phase-section">
+        <div class="phase-label-cell" style="background:var(--sourcing-light);border-right-color:var(--sourcing)">
+          <div class="phase-label-inner" style="color:var(--sourcing)">02 · Staffing</div>
+        </div>
+        <div class="phase-content">
+          <div class="actor-col">
+            <div class="fnode sales" onclick="showDetailStep('p2')">
+              ✅ Validation profils<br><small>Sélection / Refus + motif</small>
+              <div class="boond-pill">⚡ Statut candidature</div>
+            </div>
+            <div class="arrow-connector">↓</div>
+            <div class="fnode sales" onclick="showDetailStep('p2')">
+              📨 Envoi CV client<br><small>Pitch + CV adapté</small>
+            </div>
+            <div class="arrow-connector">↓</div>
+            <div class="fnode multi" style="border-color:var(--multi-mid);background:var(--multi-light)" onclick="showDetailStep('p2')">
+              ❓ Validation CV client ?
+              <div class="yn-badges"><span class="yn oui">Oui ↓</span><span class="yn non">Non ↺</span></div>
+            </div>
+            <div class="arrow-connector">↓</div>
+            <div class="fnode sales" onclick="showDetailStep('p2')">
+              📋 Pré-brief candidat
+            </div>
+            <div class="arrow-connector">↓</div>
+            <div class="fnode sales" onclick="showDetailStep('p2')">
+              🤝 Présentation client
+            </div>
+            <div class="arrow-connector">↓</div>
+            <div class="fnode multi" style="border-color:var(--multi-mid);background:var(--multi-light)" onclick="showDetailStep('p2')">
+              ❓ Validation finale ?
+              <div class="yn-badges"><span class="yn oui">Oui ↓</span><span class="yn non">Non ↺</span></div>
+            </div>
+            <div class="arrow-connector">↓</div>
+            <div class="fnode sales" onclick="showDetailStep('p2')">
+              🏆 Closing<br><small>Notification ADV</small>
+              <div class="boond-pill">⚡ Tag ADV dans Boond</div>
+            </div>
+          </div>
+          <div class="actor-col">
+            <div class="fnode sourcing" onclick="showDetailStep('p2')">
+              🔎 Recherche consultants<br><small>Interne → ROM → ST</small>
+              <div class="boond-pill">⚡ Ressources > Filtres</div>
+            </div>
+            <div class="arrow-connector">↓</div>
+            <div class="fnode sourcing" onclick="showDetailStep('p2')">
+              📌 Positionnement profils<br><small>CV + candidature Boond</small>
+              <div class="boond-pill">⚡ Besoin > Candidature</div>
+            </div>
+          </div>
+          <div class="actor-col"><!-- vide --></div>
+          <div class="actor-col">
+            <div class="fnode multi" onclick="showDetailStep('p2')">
+              📊 MAJ statut Boond<br><small>Perdu / Gagné + motif</small>
+              <div class="boond-pill">⚡ Statut besoin</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PHASE 3 : Mission & CRA -->
+      <div class="phase-section">
+        <div class="phase-label-cell" style="background:var(--adv-light);border-right-color:var(--adv)">
+          <div class="phase-label-inner" style="color:var(--adv)">03 · Mission & CRA</div>
+        </div>
+        <div class="phase-content">
+          <div class="actor-col">
+            <div class="fnode sales" onclick="showDetailStep('p3')">
+              📋 Transmission OM<br><small>TJM · Dates · Périmètre · PO</small>
+            </div>
+          </div>
+          <div class="actor-col">
+            <div class="fnode sourcing" onclick="showDetailStep('p3')">
+              📝 Saisie CRA mensuelle<br><small>Portail consultant</small>
+              <div class="boond-pill">⚡ CRA > Saisie</div>
+            </div>
+          </div>
+          <div class="actor-col">
+            <div class="fnode adv" onclick="showDetailStep('p3')">
+              ⚙️ Création mission Boond<br><small>TJM vente / achat · Période</small>
+              <div class="boond-pill">⚡ Missions > Nouveau</div>
+            </div>
+            <div class="arrow-connector">↓</div>
+            <div class="fnode adv" onclick="showDetailStep('p3')">
+              📄 Contractualisation<br><small>BC client + contrat consultant</small>
+              <div class="boond-pill">⚡ Documents > BC</div>
+            </div>
+            <div class="arrow-connector">↓</div>
+            <div class="fnode adv" onclick="showDetailStep('p3')">
+              ✅ Validation CRA<br><small>Manager → ADV</small>
+              <div class="boond-pill">⚡ CRA > Valider ADV</div>
+            </div>
+            <div class="arrow-connector">↓</div>
+            <div class="fnode adv" onclick="showDetailStep('p3')">
+              💰 Facturation<br><small>Génération & envoi facture</small>
+              <div class="boond-pill">⚡ Facturation > Générer</div>
+            </div>
+          </div>
+          <div class="actor-col">
+            <div class="fnode multi" onclick="showDetailStep('p3')">
+              🔄 Validation CRA multi<br><small>Manager client + ADV</small>
+            </div>
+            <div class="arrow-connector">↓</div>
+            <div class="fnode multi" onclick="showDetailStep('p3')">
+              📬 Recouvrement<br><small>Suivi paiement / relances</small>
+              <div class="boond-pill">⚡ Recouvrement</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /swimlane-wrap -->
+
+    <p style="font-size:11px;color:var(--muted2);margin-top:12px;text-align:center">💡 Cliquez sur un bloc pour aller au process détaillé</p>
+  </div>
+</div>
+
+<!-- ══════════ PROCESS DÉTAILLÉ ══════════ -->
+<div class="page" id="page-detail">
+  <div class="page-head">
+    <h1>Process Détaillé</h1>
+    <p>Actions précises dans Boond, acteurs, points de décision</p>
+  </div>
+  <div style="padding:20px 24px 0;">
+    <div class="phase-pills">
+      <button class="phase-pill active" onclick="showPhaseDetail('p1',this)">01 · Prospection & Besoin</button>
+      <button class="phase-pill" onclick="showPhaseDetail('p2',this)">02 · Staffing & Matching</button>
+      <button class="phase-pill" onclick="showPhaseDetail('p3',this)">03 · Mission, CRA & Facturation</button>
+    </div>
+  </div>
+
+  <div class="detail-container">
+
+    <!-- Phase 1 detail -->
+    <div class="detail-phase active" id="detail-p1">
+      <div class="detail-phase-title">01 — Prospection & Détection Besoin</div>
+      <div class="detail-phase-sub">Du premier contact client jusqu'à la transmission au sourcing</div>
+      <table class="steps-table">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th style="width:200px">Action</th>
+            <th>Détail opérationnel</th>
+            <th style="width:110px">Acteur</th>
+            <th style="width:170px">Dans Boond</th>
+          </tr>
+        </thead>
+        <tbody id="steps-p1"></tbody>
+      </table>
+    </div>
+
+    <!-- Phase 2 detail -->
+    <div class="detail-phase" id="detail-p2">
+      <div class="detail-phase-title">02 — Staffing & Matching</div>
+      <div class="detail-phase-sub">De la recherche de profils au closing et transmission ADV</div>
+      <table class="steps-table">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th style="width:200px">Action</th>
+            <th>Détail opérationnel</th>
+            <th style="width:110px">Acteur</th>
+            <th style="width:170px">Dans Boond</th>
+          </tr>
+        </thead>
+        <tbody id="steps-p2"></tbody>
+      </table>
+    </div>
+
+    <!-- Phase 3 detail -->
+    <div class="detail-phase" id="detail-p3">
+      <div class="detail-phase-title">03 — Mission, CRA & Facturation</div>
+      <div class="detail-phase-sub">De l'ouverture de mission au recouvrement</div>
+      <table class="steps-table">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th style="width:200px">Action</th>
+            <th>Détail opérationnel</th>
+            <th style="width:110px">Acteur</th>
+            <th style="width:170px">Dans Boond</th>
+          </tr>
+        </thead>
+        <tbody id="steps-p3"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ CHECKLIST ══════════ -->
+<div class="page" id="page-checklist">
+  <div class="page-head">
+    <h1>Checklist Opérationnelle</h1>
+    <p>Toutes les étapes à valider, par phase et par acteur</p>
+  </div>
+  <div class="legend-bar">
+    <div class="reset-bar" style="margin:0;flex:1">
+      <button class="btn-reset" onclick="resetAll()">↺ Réinitialiser</button>
+      <span class="global-progress" id="globalProgress">0 / 0 étapes complétées</span>
+    </div>
+  </div>
+  <div class="checklist-container" id="checklistContainer"></div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────
+const ACTORS = {
+  sales:    { label:'Toi (Sales)',  color:'#2563EB', bg:'#EFF6FF', border:'#BFDBFE' },
+  sourcing: { label:'Sourcing',     color:'#D97706', bg:'#FFFBEB', border:'#FDE68A' },
+  adv:      { label:'ADV',          color:'#059669', bg:'#ECFDF5', border:'#A7F3D0' },
+  multi:    { label:'Multi',        color:'#7C3AED', bg:'#F5F3FF', border:'#DDD6FE' },
+};
+
+const PHASES = [
+  {
+    id:'p1', num:'01', color:'#2563EB', bg:'#EFF6FF',
+    title:'Prospection & Détection Besoin',
+    sub:'Du premier contact client jusqu\'à la transmission au sourcing',
+    steps:[
+      { n:'Réception du besoin', detail:'Identifier la source : client direct, appel d\'offres, plateforme ou email entrant. Qualifier la nature : régie ou forfait.', actor:'sales', boond:{label:'CRM > Gérer votre base clients', url:'https://help.boondmanager.com/fr/articles/373601-gerer-votre-base-clients-et-prospects'}, decision:false },
+      { n:'Création / MAJ fiche compte client', detail:'Créer ou mettre à jour la fiche entreprise dans Boond : secteur, interlocuteurs clés, contrats cadre, conditions commerciales.', actor:'sales', boond:{label:'CRM > Créer une société', url:'https://help.boondmanager.com/fr/articles/373596-creer-une-nouvelle-societe-dans-la-crm'}, decision:false },
+      { n:'Création du contact décideur', detail:'Rattacher le contact prescripteur (DRH, DSI, manager opérationnel) à la fiche compte avec son rôle et ses coordonnées directes.', actor:'sales', boond:{label:'CRM > Contacts & besoins associés', url:'https://help.boondmanager.com/fr/articles/373599-consulter-la-liste-des-besoins-projets-associes-a-un-contact-crm'}, decision:false },
+      { n:'Ouverture du besoin dans Boond', detail:'Créer le besoin avec : intitulé exact du poste, compétences requises, localisation, date de démarrage souhaitée, durée, TJM cible.', actor:'sales', boond:{label:'Besoins > Gestion des besoins', url:'https://help.boondmanager.com/fr/articles/373611-gestion-des-besoins'}, decision:false },
+      { n:'Pré-qualification du besoin', detail:'Budget confirmé ? Décisionnaire identifié ? Deadline réelle ou sondage ? Niveau de concurrence estimé ? Urgence réelle ?', actor:'sales', boond:{label:'Besoins > Pondération automatique', url:'https://help.boondmanager.com/fr/articles/373614-ponderation-automatique-des-besoins'}, decision:true },
+      { n:'Brief & transmission au sourcing', detail:'Partager le brief complet avec l\'équipe sourcing : définir la typologie priorisée (Intercontrat > ROM > ST) et la deadline interne de réponse (objectif : 24h).', actor:'multi', boond:{label:'Besoins > Gestion des besoins', url:'https://help.boondmanager.com/fr/articles/373611-gestion-des-besoins'}, decision:false },
+    ]
+  },
+  {
+    id:'p2', num:'02', color:'#D97706', bg:'#FFFBEB',
+    title:'Staffing & Matching',
+    sub:'De la recherche de profils au closing et transmission à l\'ADV',
+    steps:[
+      { n:'Recherche dans la base Boond', detail:'Filtrer par compétences, disponibilité, localisation, TJM. Prioriser : 1/ Intercontrat (coût déjà payé), 2/ ROM (vivier qualifié), 3/ ST (réactivité).', actor:'sourcing', boond:{label:'Ressources > Rechercher des profils', url:'https://help.boondmanager.com/fr/articles/373571-rechercher-efficacement-des-profils-de-candidats'}, decision:false },
+      { n:'Positionnement des profils', detail:'Créer les candidatures rattachées au besoin dans Boond. Joindre le CV à jour. Vérifier disponibilité confirmée avec le consultant.', actor:'sourcing', boond:{label:'Besoins > Créer un positionnement', url:'https://help.boondmanager.com/fr/articles/373610-creer-et-qualifier-un-positionnement'}, decision:false },
+      { n:'Validation des profils par le Sales', detail:'Revue des profils positionnés : valider ou refuser avec motif structuré. Feedback au sourcing pour améliorer le matching.', actor:'sales', boond:{label:'Besoins > IA positionnements', url:'https://help.boondmanager.com/fr/articles/373613-optimiser-vos-positionnements-avec-l-ia'}, decision:true },
+      { n:'Envoi CV au client', detail:'Préparer le pitch : adapter le CV au contexte client, rédiger une note de présentation personnalisée. Tracer l\'envoi dans Boond.', actor:'sales', boond:{label:'Candidats > Gérer les DT', url:'https://help.boondmanager.com/fr/articles/373581-gerer-vos-dt-dossiers-techniques'}, decision:false },
+      { n:'Validation CV par le client ?', detail:'Retour client : profil retenu pour entretien ou refusé. Capturer systématiquement le motif de refus dans Boond pour améliorer le matching sourcing.', actor:'multi', boond:{label:'Besoins > Créer un positionnement', url:'https://help.boondmanager.com/fr/articles/373610-creer-et-qualifier-un-positionnement'}, decision:true },
+      { n:'Pré-brief candidat', detail:'Préparer le consultant : contexte client, enjeux du poste, attendus de l\'entretien, points différenciants à valoriser, format (visio/présentiel).', actor:'sales', boond:{label:'Actions > Gérer ses actions', url:'https://help.boondmanager.com/fr/articles/373569-gerer-ses-actions-et-rappels'}, decision:false },
+      { n:'Présentation client (entretien)', detail:'Coordination entretien consultant ↔ client. Présence ou non du Sales. Suivi du feedback post-entretien dans les 24h.', actor:'sales', boond:{label:'Besoins > Créer un positionnement', url:'https://help.boondmanager.com/fr/articles/373610-creer-et-qualifier-un-positionnement'}, decision:false },
+      { n:'Validation finale client ?', detail:'Décision finale du client. Si oui : lancer le closing. Si non : capturer le motif, proposer un autre profil ou clore le besoin avec motif de perte.', actor:'multi', boond:{label:'Besoins > Transformer en projet', url:'https://help.boondmanager.com/fr/articles/373608-transformer-un-besoin-en-projet'}, decision:true },
+      { n:'Closing & notification ADV', detail:'Confirmer oralement puis déclencher le passage en projet : tag ADV dans Boond + envoi de l\'Ordre de Mission par email avec toutes les données requises (PO, TJM, dates, modalités).', actor:'sales', boond:{label:'Projets > Ordre de mission', url:'https://help.boondmanager.com/fr/articles/373620-ordre-de-mission'}, decision:false },
+      { n:'MAJ statut besoin Boond', detail:'Clôturer le besoin : Gagné (mission créée) ou Perdu (motif renseigné). Toujours renseigner le motif de perte pour alimenter l\'amélioration continue.', actor:'multi', boond:{label:'Besoins > Gestion des besoins', url:'https://help.boondmanager.com/fr/articles/373611-gestion-des-besoins'}, decision:false },
+    ]
+  },
+  {
+    id:'p3', num:'03', color:'#059669', bg:'#ECFDF5',
+    title:'Mission, CRA & Facturation',
+    sub:'De l\'ouverture de mission au recouvrement',
+    steps:[
+      { n:'Transmission OM à l\'ADV', detail:'Données requises : PO ou devis signé, TJM vente, CJM, dates exactes début/fin, email consultant, modalités remote/sur site, intitulé poste, portage oui/non, entité de contractualisation.', actor:'sales', boond:{label:'Projets > Ordre de mission', url:'https://help.boondmanager.com/fr/articles/373620-ordre-de-mission'}, decision:false },
+      { n:'Passage consultant en Ressource Boond', detail:'Créer ou mettre à jour la fiche ressource du consultant : informations générales, commentaires de positionnement, compétences.', actor:'adv', boond:{label:'RH > Créer une ressource de A à Z', url:'https://help.boondmanager.com/fr/articles/373582-creer-une-ressource-de-a-a-z'}, decision:false },
+      { n:'Création de la mission dans Boond', detail:'Paramétrage complet : consultant, client, TJM vente, TJM/CJM achat, période (début/fin), modalités de facturation (régie ou forfait), création de la prestation.', actor:'adv', boond:{label:'Projets > Créer un projet en régie', url:'https://help.boondmanager.com/fr/articles/373616-creer-un-projet-en-regie-de-a-a-z'}, decision:false },
+      { n:'Contractualisation', detail:'Générer et envoyer le bon de commande client via Boond. Créer et envoyer le contrat / avenant consultant (via DocuSign). LIE si nouveau consultant ou ROM.', actor:'adv', boond:{label:'Signature électronique (DocuSign)', url:'https://help.boondmanager.com/fr/articles/373543-signature-electronique'}, decision:false },
+      { n:'Démarrage de mission', detail:'Passer le statut mission à "En cours". Activer les accès CRA du consultant sur le portail Boond. Informer le consultant des modalités de saisie et des deadlines.', actor:'adv', boond:{label:'Intranet > Activer accès ressource', url:'https://help.boondmanager.com/fr/articles/373585-activer-l-intranet-d-une-ressource-et-lui-communiquer-ses-acces'}, decision:false },
+      { n:'Saisie mensuelle du CRA (J-5)', detail:'Le consultant saisit ses jours travaillés dans le portail Boond avant la date limite (J-5 fin de mois). En cas d\'absence : prévenir l\'ADV pour traitement des jours partiels.', actor:'sourcing', boond:{label:'Intranet > Créer sa feuille de temps', url:'https://help.boondmanager.com/fr/articles/373529-comment-creer-et-renseigner-sa-feuille-de-temps'}, decision:false },
+      { n:'Clôture & validation CRA (J 25-26)', detail:'Clôture stricte des modifications jours 25-26. Vérification ADV : cohérence jours vs mois, absences, conditions particulières. Bloquer les modifications après validation.', actor:'adv', boond:{label:'Activité > Contrôler les documents', url:'https://help.boondmanager.com/fr/articles/373644-controler-les-documents-en-attente-de-validation'}, decision:false },
+      { n:'Validation CRA manager / client', detail:'Envoi du CRA au manager ou client pour validation. Suivi des retours. Relance si non-réponse dans les 48h. Exceptions : L, M, V de 10h30 à 11h.', actor:'multi', boond:{label:'Activité > Signature des temps client', url:'https://help.boondmanager.com/fr/articles/373642-signature-des-temps-par-le-client'}, decision:true },
+      { n:'Génération & envoi de la facture (J 1-10)', detail:'Générer la facture sur la base du CRA validé. Déposer sur les portails clients (j 1 à 10). Pour un forfait : facturer sur jalons contractuels, pas sur CRA.', actor:'adv', boond:{label:'Facturation > Facturer un projet régie', url:'https://help.boondmanager.com/fr/articles/373648-facturation-mensuelle-facturer-un-projet-en-regie-at'}, decision:false },
+      { n:'Recouvrement (Pennylane)', detail:'J-5 : relance préventive. J+2 & J+7 : relances automatiques. J+12 : escalade téléphonique ou contact compta fournisseur client.', actor:'multi', boond:{label:'Facturation > Suivre le paiement', url:'https://help.boondmanager.com/fr/articles/373654-suivre-le-paiement-de-ses-factures'}, decision:false },
+    ]
+  }
+];
+
+// ─── RENDER DETAIL TABLES ──────────────────────────────────────
+function renderDetailTables() {
+  PHASES.forEach(ph => {
+    const tbody = document.getElementById('steps-'+ph.id);
+    ph.steps.forEach((s,i) => {
+      const a = ACTORS[s.actor];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><div class="step-num" style="background:${ph.color}">${i+1}</div></td>
+        <td>
+          <div class="step-action">${s.n}</div>
+          ${s.decision ? '<div class="decision-badge" style="display:inline-block;margin-top:4px">⚡ Point décision</div>' : ''}
+        </td>
+        <td><div class="step-detail">${s.detail}</div></td>
+        <td><span class="actor-badge" style="background:${a.bg};color:${a.color};border:1px solid ${a.border}">${a.label}</span></td>
+        <td>${s.boond ? `<a href="${s.boond.url}" target="_blank" rel="noopener" class="boond-badge-tbl boond-link" title="Ouvrir la documentation Boond">📖 ${s.boond.label} ↗</a>` : '<span style="color:var(--muted2);font-size:11px">—</span>'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+// ─── RENDER CHECKLIST ─────────────────────────────────────────
+const checkState = {};
+let totalItems = 0;
+
+function renderChecklist() {
+  const cont = document.getElementById('checklistContainer');
+  let idx = 0;
+  PHASES.forEach(ph => {
+    const section = document.createElement('div');
+    section.className = 'cl-phase-section';
+
+    const head = document.createElement('div');
+    head.className = 'cl-phase-head';
+    head.style.background = ph.bg;
+    head.style.borderColor = 'var(--border)';
+    head.innerHTML = `
+      <div class="cl-phase-num" style="background:${ph.color}">${ph.num}</div>
+      <div class="cl-phase-title">${ph.title}</div>
+      <div class="cl-progress-wrap">
+        <div class="cl-progress-bar"><div class="cl-progress-fill" id="prog-${ph.id}" style="background:${ph.color};width:0%"></div></div>
+        <div class="cl-progress-text" id="ptxt-${ph.id}">0/${ph.steps.length}</div>
+      </div>
+    `;
+    section.appendChild(head);
+
+    const itemsDiv = document.createElement('div');
+    itemsDiv.className = 'cl-items';
+
+    ph.steps.forEach((s,si) => {
+      const globalIdx = idx;
+      checkState[globalIdx] = false;
+      totalItems++;
+      const a = ACTORS[s.actor];
+      const item = document.createElement('div');
+      item.className = 'cl-item';
+      item.id = 'cli-'+globalIdx;
+      item.onclick = () => toggleCheck(globalIdx, ph.id, ph.steps.length);
+      item.innerHTML = `
+        <div class="cl-checkbox" id="clcb-${globalIdx}"></div>
+        <div>
+          <div class="cl-text" id="cltxt-${globalIdx}">${s.n}</div>
+          <div class="cl-meta">
+            <span class="cl-actor" style="background:${a.bg};color:${a.color};border:1px solid ${a.border}">${a.label}</span>
+            ${s.boond ? `<a href="${s.boond.url}" target="_blank" rel="noopener" class="cl-boond cl-boond-link" title="Documentation Boond">📖 ${s.boond.label} ↗</a>` : ''}
+            ${s.decision ? `<span style="font-size:10px;color:var(--multi)">⚡ Décision</span>` : ''}
+          </div>
+        </div>
+      `;
+      itemsDiv.appendChild(item);
+      idx++;
+    });
+
+    section.appendChild(itemsDiv);
+    cont.appendChild(section);
+  });
+  updateGlobalProgress();
+}
+
+function toggleCheck(idx, phaseId, phaseTotal) {
+  checkState[idx] = !checkState[idx];
+  const item = document.getElementById('cli-'+idx);
+  checkState[idx] ? item.classList.add('done') : item.classList.remove('done');
+  updatePhaseProgress(phaseId, phaseTotal);
+  updateGlobalProgress();
+}
+
+function updatePhaseProgress(phaseId, total) {
+  const ph = PHASES.find(p=>p.id===phaseId);
+  const phStart = PHASES.slice(0,PHASES.indexOf(ph)).reduce((a,p)=>a+p.steps.length,0);
+  let done=0;
+  for(let i=phStart;i<phStart+total;i++) if(checkState[i]) done++;
+  document.getElementById('prog-'+phaseId).style.width=(done/total*100)+'%';
+  document.getElementById('ptxt-'+phaseId).textContent=done+'/'+total;
+}
+
+function updateGlobalProgress() {
+  const done = Object.values(checkState).filter(Boolean).length;
+  document.getElementById('globalProgress').innerHTML = `<strong>${done}</strong> / ${totalItems} étapes complétées`;
+}
+
+function resetAll() {
+  Object.keys(checkState).forEach(i=>{
+    checkState[i]=false;
+    document.getElementById('cli-'+i)?.classList.remove('done');
+  });
+  PHASES.forEach(ph=>{
+    document.getElementById('prog-'+ph.id).style.width='0%';
+    document.getElementById('ptxt-'+ph.id).textContent='0/'+ph.steps.length;
+  });
+  updateGlobalProgress();
+}
+
+// ─── NAV ──────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function showPhaseDetail(phId, btn) {
+  document.querySelectorAll('.detail-phase').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.phase-pill').forEach(b=>b.classList.remove('active'));
+  document.getElementById('detail-'+phId).classList.add('active');
+  btn.classList.add('active');
+}
+
+function showDetailStep(phId) {
+  // Navigate to detail page and show correct phase
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-detail').classList.add('active');
+  document.querySelectorAll('.nav-tab')[1].classList.add('active');
+  document.querySelectorAll('.detail-phase').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.phase-pill').forEach(b=>b.classList.remove('active'));
+  document.getElementById('detail-'+phId).classList.add('active');
+  document.querySelectorAll('.phase-pill')[parseInt(phId.replace('p',''))-1].classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ─── INIT ────────────────────────────────────────────────────
+renderDetailTables();
+renderChecklist();
+</script>
+</body>
+</html>
